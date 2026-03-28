@@ -69,7 +69,7 @@ nav a {
 
 .hero .slide_items img {
     width: 100%;
-    height: 70vh;
+    height: 60vh;
     object-fit: contain;
 }
 
@@ -177,6 +177,10 @@ nav a {
 .clinic_service_container {
     width: 100%;
     margin: 0 auto;
+}
+
+.clinic_service_container>ul {
+    padding-left: 2rem;
 }
 
 .clinic_service_list {
