@@ -1,10 +1,6 @@
 @charset "UTF-8";
 
 /* ========== common ========== */
-* {
-    outline: 1px solid red !important;
-}
-
 html {
     box-sizing: border-box;
     font-size: 50%;
@@ -205,6 +201,7 @@ nav a {
 
 .clinic_service_list>li {
     margin-bottom: 1rem;
+    margin-right: 0;
     border-top: 2px solid #333;
     padding-top: 1rem;
 }
