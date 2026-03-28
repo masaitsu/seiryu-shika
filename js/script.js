@@ -1,10 +1,9 @@
 $(function () {
     var facebookWrap = $('.fb_service_container .facebook_wrapper');
     var facebookWrap2 = $('.clinic_schedule_fb_container .facebook_wrapper');
-    var fbBeforeWidth = '';
-    var fbWidth = Math.floor(facebookWrap.width());
-    var fbWidth2 = Math.floor(facebookWrap2.width());
     var fbTimer = false;
+    var lastWindowWidth;
+
 
     function pagePluginCode(w) {
         if (w < 400) {
@@ -54,14 +53,14 @@ $(function () {
             clearTimeout(fbTimer);
         }
         fbTimer = setTimeout(function () {
-            fbWidth = Math.floor(facebookWrap.width());
-            fbWidth2 = Math.floor(facebookWrap2.width());
-            if (fbWidth != fbBeforeWidth) {
-                facebookWrap.html(pagePluginCode(fbWidth));
-                facebookWrap2.html(pagePluginCode2(fbWidth2));
-                window.FB.XFBML.parse();
-                fbBeforeWidth = fbWidth;
+            var currentWindowWidth = window.innerWidth;
+            if (currentWindowWidth === lastWindowWidth) {
+                return;
             }
+            lastWindowWidth = currentWindowWidth;
+            facebookWrap.html(pagePluginCode(Math.floor(facebookWrap.width())));
+            facebookWrap2.html(pagePluginCode2(Math.floor(facebookWrap2.width())));
+            window.FB.XFBML.parse();
         }, 200);
 
         slickSwitch();
