@@ -66,3 +66,35 @@ $(function () {
         slickSwitch();
     });
 });
+
+$(function () {
+
+    /* ===== モーダル ===== */
+    const modal = document.getElementById("privacyModal");
+    const openBtn = document.getElementById("openPrivacy");
+    const closeBtn = document.getElementById("closePrivacy");
+
+    if (modal && openBtn && closeBtn) {
+        openBtn.onclick = () => modal.style.display = "block";
+        closeBtn.onclick = () => modal.style.display = "none";
+
+        window.onclick = (e) => {
+            if (e.target === modal) {
+                modal.style.display = "none";
+            }
+        };
+    }
+
+    /* ===== 同意チェック ===== */
+    const checkbox = document.querySelector('input[name="privacy"]');
+    const btn = document.getElementById("submitBtn");
+
+    if (checkbox && btn) {
+        btn.disabled = !checkbox.checked;
+
+        checkbox.addEventListener("change", () => {
+            btn.disabled = !checkbox.checked;
+        });
+    }
+
+});

@@ -20,6 +20,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $errors['common'] = "不正送信です";
     }
 
+    if (empty($_POST['privacy'])) {
+        $errors['privacy'] = "同意が必要です";
+    }
+
     if (!empty($_POST['company'])) {
         exit;
     }
@@ -385,7 +389,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <p class="form_item_label isMsg"><span class="form_item_label_required">必須</span>お問い合わせ内容</p>
                     <textarea name="<?= $msg_field ?>" class="form_item_textarea"><?= htmlspecialchars($old[$msg_field] ?? '', ENT_QUOTES) ?></textarea>
                 </div>
-                <input type="submit" class="form_btn" value="送信する">
+                <?php if (!empty($errors['privacy'])): ?>
+                    <p class="form_err_msg"><?= htmlspecialchars($errors['privacy']) ?></p>
+                <?php endif; ?>
+                <div class="form_item">
+                    <label>
+                        <input type="checkbox" name="privacy" value="1"
+                            <?= !empty($old['privacy']) ? 'checked' : '' ?>>
+                        <span class="privacy_msg"><span class="privacy_link" id="openPrivacy">プライバシーポリシー</span>
+                            に同意します</span>
+                    </label>
+                </div>
+                <input type="submit" class="form_btn" value="送信する" id="submitBtn" disabled>
                 <input type="hidden" name="token" value="<?= $_SESSION['token'] ?>">
                 <input type="hidden" name="form_start" value="<?= time() ?>">
                 <input type="hidden" name="js_check" id="js_check" value="0">
@@ -440,6 +455,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <p>© O.S.D. Ltd.</p>
         </div>
     </footer>
+
+    <div id="privacyModal" class="modal">
+        <div class="modal_content">
+            <span class="modal_close" id="closePrivacy">&times;</span>
+            <h2>プライバシーポリシー</h2>
+            <p>
+                当サイトでは、お問い合わせ時にお名前・メールアドレス等の個人情報をご入力いただきます。
+            </p>
+            <p>
+                これらの情報はお問い合わせ対応の目的のみに利用し、第三者に提供することはありません。
+            </p>
+            <p>
+                法令に基づく場合を除き、本人の同意なく第三者に提供することはありません。
+            </p>
+            <p>
+                取得した個人情報は適切に管理し、不正アクセス・漏洩防止に努めます。
+            </p>
+        </div>
+    </div>
 
     <!-- jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
