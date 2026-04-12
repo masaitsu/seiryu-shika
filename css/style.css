@@ -404,6 +404,12 @@ td:nth-child(6) {
     font-size: 1.8rem;
 }
 
+.form_err_msg {
+    color: red;
+    font-size: 1.2rem;
+    margin: 0;
+}
+
 /* footer */
 footer {
     background: #333333;

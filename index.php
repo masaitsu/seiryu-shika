@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $old = $_POST;
 
     if ($name === '') $errors['name'] = "お名前を入力してください";
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors['email'] = "メールが不正です";
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors['email'] = "メールアドレスが不正です";
     if ($msg === '') $errors['msg'] = "内容を入力してください";
 
     if (!$errors) {
@@ -350,24 +350,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <p style="color:red;"><?= htmlspecialchars($errors['common']) ?></p>
             <?php endif; ?>
 
-            <form method="post" class="form">
+            <form method="post" action="#contact" class="form">
+                <?php if (!empty($errors['name'])): ?>
+                    <p class="form_err_msg"><?= htmlspecialchars($errors['name']) ?></p>
+                <?php endif; ?>
                 <div class="form_item">
                     <p class="form_item_label"><span class="form_item_label_required">必須</span>お名前</p>
                     <input type="text" name="<?= $name_field ?>" class="form_item_input"
                         value="<?= htmlspecialchars($old[$name_field] ?? '', ENT_QUOTES) ?>">
-
-                    <?php if (!empty($errors['name'])): ?>
-                        <p style="color:red;"><?= htmlspecialchars($errors['name']) ?></p>
-                    <?php endif; ?>
                 </div>
+                <?php if (!empty($errors['email'])): ?>
+                    <p class="form_err_msg"><?= htmlspecialchars($errors['email']) ?></p>
+                <?php endif; ?>
                 <div class="form_item">
                     <p class="form_item_label"><span class="form_item_label_required">必須</span>メールアドレス</p>
                     <input type="email" name="<?= $email_field ?>" class="form_item_input"
                         value="<?= htmlspecialchars($old[$email_field] ?? '', ENT_QUOTES) ?>">
-
-                    <?php if (!empty($errors['email'])): ?>
-                        <p style="color:red;"><?= htmlspecialchars($errors['email']) ?></p>
-                    <?php endif; ?>
                 </div>
                 <div class="form_item">
                     <p class="form_item_label"><span class="form_item_label_required">必須</span>お問い合わせ先</p>
@@ -380,13 +378,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <label for="clinic">おびひろ清流歯科クリニック</label>
                     </div>
                 </div>
+                <?php if (!empty($errors['msg'])): ?>
+                    <p class="form_err_msg"><?= htmlspecialchars($errors['msg']) ?></p>
+                <?php endif; ?>
                 <div class="form_item">
                     <p class="form_item_label isMsg"><span class="form_item_label_required">必須</span>お問い合わせ内容</p>
                     <textarea name="<?= $msg_field ?>" class="form_item_textarea"><?= htmlspecialchars($old[$msg_field] ?? '', ENT_QUOTES) ?></textarea>
-
-                    <?php if (!empty($errors['msg'])): ?>
-                        <p style="color:red;"><?= htmlspecialchars($errors['msg']) ?></p>
-                    <?php endif; ?>
                 </div>
                 <input type="submit" class="form_btn" value="送信する">
                 <input type="hidden" name="token" value="<?= $_SESSION['token'] ?>">
@@ -451,6 +448,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <!-- form -->
     <script>
         document.getElementById("js_check").value = "1";
+        <?php if ($success || !empty($errors)): ?>
+            window.addEventListener("DOMContentLoaded", function() {
+                document.getElementById("contact").scrollIntoView({
+                    behavior: "smooth"
+                });
+            });
+        <?php endif; ?>
     </script>
     <script src="js/script.js"></script>
 </body>
