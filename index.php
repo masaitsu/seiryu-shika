@@ -1,3 +1,89 @@
+<?php
+session_start();
+
+$errors = [];
+$success = false;
+
+if (empty($_SESSION['token'])) {
+    $_SESSION['token'] = bin2hex(random_bytes(32));
+}
+
+$name_field = "f_" . substr($_SESSION['token'], 0, 6);
+$email_field = "f_" . substr($_SESSION['token'], 6, 6);
+$msg_field = "f_" . substr($_SESSION['token'], 12, 6);
+
+$old = [];
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    if (!hash_equals($_SESSION['token'], $_POST['token'] ?? '')) {
+        $errors['common'] = "不正送信です";
+    }
+
+    if (!empty($_POST['company'])) {
+        exit;
+    }
+
+    if (($_POST['js_check'] ?? '') !== "1") {
+        $errors['common'] = "不正送信です";
+    }
+
+    if (time() - ($_POST['form_start'] ?? 0) < 3) {
+        $errors['common'] = "送信が早すぎます";
+    }
+
+    $name = trim($_POST[$name_field] ?? '');
+    $email = trim($_POST[$email_field] ?? '');
+    $msg = trim($_POST[$msg_field] ?? '');
+
+    $old = $_POST;
+
+    if ($name === '') $errors['name'] = "お名前を入力してください";
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors['email'] = "メールが不正です";
+    if ($msg === '') $errors['msg'] = "内容を入力してください";
+
+    if (!$errors) {
+
+        $to = "incoherent.kc@gmail.com";
+
+        $subject = "お問い合わせ";
+
+        $body = "名前: $name\nメール: $email\n\n$msg";
+
+        $headers = "From: info@seiryu-shika.com\r\nReply-To:$email";
+
+        mb_language("Japanese");
+        mb_internal_encoding("UTF-8");
+
+        // 管理者宛
+        $admin_ok = mb_send_mail($to, $subject, $body, $headers);
+
+        // 自動返信
+        $auto_body =
+            "$name 様\n\n" .
+            "お問い合わせありがとうございます。\n" .
+            "以下の内容で受け付けました。\n\n" .
+            "-----------------\n" .
+            "お名前: $name\n" .
+            "メール: $email\n\n" .
+            "$msg\n" .
+            "-----------------\n\n" .
+            "後ほどご連絡いたします。";
+
+        $auto_headers = "From: info@seiryu-shika.com\r\n";
+
+        $user_ok = mb_send_mail($email, "お問い合わせありがとうございます", $auto_body, $auto_headers);
+
+        if ($admin_ok) {
+            $success = true;
+            $_SESSION['token'] = bin2hex(random_bytes(32));
+            $old = [];
+        } else {
+            $errors['common'] = "送信失敗";
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="ja">
 
@@ -193,7 +279,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="clinic_schedule_fb_container">
+            <div class="clinic_schedule_fb_container container">
                 <div class="clinic_schedule_container">
                     <h3>
                         診療時間
@@ -256,14 +342,32 @@
     <section id="contact">
         <div class="container">
             <h2>お問い合わせ</h2>
-            <div class="form">
+            <?php if ($success): ?>
+                <p style="color:green;">お問い合わせを受け付けました。</p>
+            <?php endif; ?>
+
+            <?php if (!empty($errors['common'])): ?>
+                <p style="color:red;"><?= htmlspecialchars($errors['common']) ?></p>
+            <?php endif; ?>
+
+            <form method="post" class="form">
                 <div class="form_item">
                     <p class="form_item_label"><span class="form_item_label_required">必須</span>お名前</p>
-                    <input type="text" class="form_item_input" placeholder="例）山田太郎">
+                    <input type="text" name="<?= $name_field ?>" class="form_item_input"
+                        value="<?= htmlspecialchars($old[$name_field] ?? '', ENT_QUOTES) ?>">
+
+                    <?php if (!empty($errors['name'])): ?>
+                        <p style="color:red;"><?= htmlspecialchars($errors['name']) ?></p>
+                    <?php endif; ?>
                 </div>
                 <div class="form_item">
                     <p class="form_item_label"><span class="form_item_label_required">必須</span>メールアドレス</p>
-                    <input type="email" class="form_item_input" placeholder="例）example@gmail.com">
+                    <input type="email" name="<?= $email_field ?>" class="form_item_input"
+                        value="<?= htmlspecialchars($old[$email_field] ?? '', ENT_QUOTES) ?>">
+
+                    <?php if (!empty($errors['email'])): ?>
+                        <p style="color:red;"><?= htmlspecialchars($errors['email']) ?></p>
+                    <?php endif; ?>
                 </div>
                 <div class="form_item">
                     <p class="form_item_label"><span class="form_item_label_required">必須</span>お問い合わせ先</p>
@@ -278,10 +382,21 @@
                 </div>
                 <div class="form_item">
                     <p class="form_item_label isMsg"><span class="form_item_label_required">必須</span>お問い合わせ内容</p>
-                    <textarea class="form_item_textarea"></textarea>
+                    <textarea name="<?= $msg_field ?>" class="form_item_textarea"><?= htmlspecialchars($old[$msg_field] ?? '', ENT_QUOTES) ?></textarea>
+
+                    <?php if (!empty($errors['msg'])): ?>
+                        <p style="color:red;"><?= htmlspecialchars($errors['msg']) ?></p>
+                    <?php endif; ?>
                 </div>
                 <input type="submit" class="form_btn" value="送信する">
-            </div>
+                <input type="hidden" name="token" value="<?= $_SESSION['token'] ?>">
+                <input type="hidden" name="form_start" value="<?= time() ?>">
+                <input type="hidden" name="js_check" id="js_check" value="0">
+
+                <div style="position:absolute;left:-5000px;">
+                    <input name="company">
+                </div>
+            </form>
         </div>
     </section>
 
@@ -333,6 +448,10 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <!-- slick -->
     <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+    <!-- form -->
+    <script>
+        document.getElementById("js_check").value = "1";
+    </script>
     <script src="js/script.js"></script>
 </body>
 
